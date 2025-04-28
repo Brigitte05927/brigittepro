@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-BrigitteProjetApplication<brigitte_projet>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.brigitte_projet.BrigitteProjetApplication",
+            "projectName": "brigitte_projet",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
