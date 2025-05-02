@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajout d’un produit</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #ffecd2, #fcb69f);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 50px 40px;
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+
+        .btn-ajouter {
+            width: 100%;
+            padding: 15px;
+            background-color: #2b6777;
+            color: white;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-ajouter:hover {
+            background-color: #20505e;
+        }
+
+        .success-message {
+            margin-top: 15px;
+            text-align: center;
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <h2>Ajouter un produit</h2>
+        <form id="productForm" onsubmit="return ajouterProduit(event)">
+            <label for="name">Nom du produit :</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="quantity">Quantité :</label>
+            <input type="number" id="quantity" name="quantity" required>
+
+            <label for="minQuantity">Quantité minimale :</label>
+            <input type="number" id="minQuantity" name="minQuantity" required>
+
+            <label for="price">Prix (€) :</label>
+            <input type="number" step="0.01" id="price" name="price" required>
+
+            <button type="submit" class="btn-ajouter">Ajouter le produit</button>
+            <div class="success-message" id="successMsg"></div>
+            <a href="affichage-produit.html" class="btn-view">Voir les produits</a>
+
+        </form>
+    </div>
+
+    <script>
+        function ajouterProduit(event) {
+            event.preventDefault();
+
+            // Tu peux remplacer ça par un appel API plus tard
+            const name = document.getElementById("name").value;
+            const quantity = document.getElementById("quantity").value;
+            const minQuantity = document.getElementById("minQuantity").value;
+            const price = document.getElementById("price").value;
+
+            // Ici tu peux faire un fetch() ou axios.post() vers ton backend
+            document.getElementById("successMsg").textContent = "Produit ajouté avec succès ✅";
+
+            // Optionnel : reset le formulaire
+            document.getElementById("productForm").reset();
+        }
+    </script>
+
+</body>
+</html>

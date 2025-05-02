@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Authentification - Digital Inventory App</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right top, #4158D0, #C850C0, #FFCC70);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .auth-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            color: #2b2b2b;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .btn-submit {
+            background-color: #2b6777;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-submit:hover {
+            background-color: #20505e;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <h2>Connexion Admin</h2>
+        <form action="dashboard.html" method="post" onsubmit="return validateLogin(event)">
+            <input type="text" id="username" placeholder="Nom d'utilisateur" required>
+            <input type="password" id="password" placeholder="Mot de passe" required>
+            <button type="submit" class="btn-submit">Se connecter</button>
+            <p class="error-message" id="errorMsg"></p>
+        </form>
+    </div>
+
+    <script>
+        function validateLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const errorMsg = document.getElementById("errorMsg");
+
+            // Simule une authentification basique
+            if (username === "admin" && password === "1234") {
+                window.location.href = "ajout-produit.html"; // rediriger vers un tableau de bord
+            } else {
+                errorMsg.textContent = "Identifiants incorrects. Veuillez réessayer.";
+            }
+        }
+    </script>
+
+</body>
+</html>
