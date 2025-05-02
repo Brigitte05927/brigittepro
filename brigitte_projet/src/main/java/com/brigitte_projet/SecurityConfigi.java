@@ -50,7 +50,7 @@ public class SecurityConfigi {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/login", "/api/register").permitAll()
-                .requestMatchers("/error").permitAll()
+                .requestMatchers("/api/transactions").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
