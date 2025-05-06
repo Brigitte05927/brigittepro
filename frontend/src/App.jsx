@@ -1,35 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Link } from 'react-router-dom';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+    <div style={{
+      background: 'linear-gradient(to right, #74ebd5, #acb6e5)',
+      minHeight: '100vh',
+      padding: '40px',
+      fontFamily: 'Segoe UI, sans-serif'
+    }}>
+      <h1 style={{ textAlign: 'center', color: '#2b2b2b' }}>
+        Digital Inventory App for Small Shops
+      </h1>
+      <p style={{ fontSize: '1.2em', maxWidth: '800px', margin: 'auto' }}>
+        Solution simple pour gérer vos stocks, ventes et réapprovisionnements.
       </p>
-    </>
-  )
+      <div style={{ textAlign: 'center', marginTop: '30px' }}>
+        <Link to="/login" style={{
+          padding: '15px 30px',
+          backgroundColor: '#2b6777',
+          color: 'white',
+          textDecoration: 'none',
+          borderRadius: '8px'
+        }}>
+          Connexion Admin
+        </Link>
+      </div>
+    </div>
+  );
 }
-
-export default App
