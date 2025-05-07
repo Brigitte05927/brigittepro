@@ -1,0 +1,9 @@
+.transactions-page {
+    padding: 20px;
+  }
+  
+  .transaction-content {
+    display: flex;
+    gap: 20px;
+  }
+  

@@ -1,0 +1,27 @@
+.stock-report h3 {
+    margin-top: 0;
+    color: #2c3e50;
+  }
+  
+  .stock-report h4 {
+    color: #2c3e50;
+    margin-top: 20px;
+  }
+  
+  .stock-report table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  
+  .stock-report th {
+    text-align: left;
+    padding: 10px;
+    background-color: #f8f9fa;
+    color: #7f8c8d;
+  }
+  
+  .stock-report td {
+    padding: 10px;
+    border-bottom: 1px solid #ecf0f1;
+  }

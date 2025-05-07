@@ -1,0 +1,50 @@
+.app-header {
+    background-color: #282c34;
+    color: white;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .logout-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+  }
+  
+  .sidebar {
+    width: 200px;
+    background-color: #343a40;
+    color: white;
+    padding: 20px 0;
+  }
+  
+  .sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .sidebar-nav li {
+    padding: 10px 20px;
+  }
+  
+  .sidebar-nav li a {
+    color: white;
+    text-decoration: none;
+    display: block;
+  }
+  
+  .sidebar-nav li a:hover {
+    background-color: #495057;
+  }

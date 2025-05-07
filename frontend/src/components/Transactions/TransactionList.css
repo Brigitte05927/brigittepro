@@ -1,0 +1,39 @@
+.transaction-list {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .transaction-list h3 {
+    margin-top: 0;
+    color: #2c3e50;
+  }
+  
+  .transaction-list table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  
+  .transaction-list th {
+    text-align: left;
+    padding: 10px;
+    background-color: #f8f9fa;
+    color: #7f8c8d;
+  }
+  
+  .transaction-list td {
+    padding: 10px;
+    border-bottom: 1px solid #ecf0f1;
+  }
+  
+  .type-in {
+    color: #27ae60;
+    font-weight: bold;
+  }
+  
+  .type-out {
+    color: #e74c3c;
+    font-weight: bold;
+  }
