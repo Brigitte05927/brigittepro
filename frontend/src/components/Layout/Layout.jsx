@@ -10,6 +10,7 @@ function Layout() {
       <div className="main-content">
         <Sidebar />
         <div className="content-area">
+          {/* Le Outlet DOIT rester ici pour afficher les pages */}
           <Outlet />
         </div>
       </div>

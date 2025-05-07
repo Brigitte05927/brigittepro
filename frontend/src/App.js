@@ -1,19 +1,20 @@
 import { Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout/Layout';
 import Layout from './components/Layout/Layout'; // Assure-toi d'avoir un Layout avec <Outlet />
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Dashboard from './pages/Dashboard';
-import ProductsPage from './pages/ProductsPage';
-import TransactionsPage from './pages/TransactionsPage';
-import ReportsPage from './pages/ReportsPage';
-import './App.css';
 
+@@ -11,11 +11,14 @@ import './App.css';
 function App() {
   return (
     <Routes>
       {/* Pages publiques (hors layout) */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/" element={<Login />}>
+        <Route index element={<Dashboard />} />
+        <Route path="products" element={<ProductsPage />} />
 
       {/* Pages privées (avec Layout commun) */}
       <Route path="/" element={<Layout />}> {/* Remplace Login par Layout */}
@@ -22,8 +23,11 @@ function App() {
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="reports" element={<ReportsPage />} />
       </Route>
-    </Routes>
+
+@@ -23,6 +26,4 @@ function App() {
   );
 }
+
+
 
 export default App;
