@@ -12,13 +12,14 @@ function App() {
   return (
     <Routes>
       {/* Pages publiques (hors layout) */}
+      <Route path="/" element={<Layout />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
       {/* Pages privées (avec Layout commun) */}
-      <Route path="/" element={<Layout />}> {/* Remplace Login par Layout */}
-        <Route index element={<Dashboard />} />         // http://localhost:3000/
-        <Route path="products" element={<ProductsPage />} />      // http://localhost:3000/products
+      <Route path="/" element={<Login />}> {/* Remplace Login par Layout */}
+        <Route index element={<Dashboard />} />          {/* http://localhost:3000/*/}
+        <Route path="products" element={<ProductsPage />} />       {/* http://localhost:3000/products*/}
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="reports" element={<ReportsPage />} />
       </Route>
