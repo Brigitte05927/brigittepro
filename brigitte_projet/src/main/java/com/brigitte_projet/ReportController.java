@@ -18,6 +18,12 @@ public class ReportController {
     @Autowired
     private TransactionRepository transactionRepo;
 
+    // ✅ Message informatif pour /api/reports
+    @GetMapping
+    public String reportHome() {
+        return "Bienvenue dans l'API des rapports. Utilisez /low-stock pour les produits en stock faible et /sales?from=...&to=... pour les ventes.";
+    }
+
     @GetMapping("/low-stock")
     public List<Product> getLowStockProducts() {
         return productRepo.findAll().stream()
@@ -39,4 +45,3 @@ public class ReportController {
                 .collect(Collectors.toList());
     }
 }
-
