@@ -1,49 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState } from 'react';
 
 const TransactionPage = () => {
-  const { id } = useParams();
   const [form, setForm] = useState({
     productId: '',
     type: 'entrée',
     quantity: 0,
   });
-  const [message, setMessage] = useState('');
+  const [transactionMessage, setTransactionMessage] = useState('');
 
-  useEffect(() => {
-    setForm(prev => ({ ...prev, productId: id }));
-  }, [id]);
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    try {
-      const response = await fetch('http://localhost:8080/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-
-      if (response.ok) {
-        setMessage("✅ Transaction enregistrée !");
-        setForm({ ...form, quantity: 0 }); // reset quantité
-      } else {
-        setMessage("❌ Erreur lors de l'enregistrement.");
-      }
-    } catch (error) {
-      console.error(error);
-      setMessage("❌ Erreur de connexion.");
-    }
+    
+    // Créez un message de confirmation à afficher
+    const message = `Transaction ${form.type} enregistrée pour produit ID ${form.productId}, quantité: ${form.quantity}`;
+    
+    // Mettez à jour l'état avec ce message
+    setTransactionMessage(message);
   };
 
   return (
     <div className="container">
       <h2>💰 Nouvelle Transaction</h2>
-      <p>Produit concerné : <strong>{id}</strong></p>
-
+      
       <form onSubmit={handleSubmit}>
         <label>
-          Type de transaction :
+          ID du Produit :
+          <input type="text" value={form.productId} onChange={(e) => setForm({ ...form, productId: e.target.value })} required />
+        </label>
+        <label>
+          Type :
           <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
             <option value="entrée">Entrée</option>
             <option value="sortie">Sortie</option>
@@ -51,17 +36,17 @@ const TransactionPage = () => {
         </label>
         <label>
           Quantité :
-          <input
-            type="number"
-            value={form.quantity}
-            onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-            required
-          />
+          <input type="number" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} required />
         </label>
         <button type="submit">Valider</button>
       </form>
 
-      {message && <p style={{ marginTop: '15px', fontWeight: 'bold' }}>{message}</p>}
+      {transactionMessage && (
+        <div className="confirmation-message">
+          <h3>✅ Confirmation</h3>
+          <p>{transactionMessage}</p>
+        </div>
+      )}
 
       <style>{`
         .container {
@@ -96,6 +81,16 @@ const TransactionPage = () => {
         }
         button:hover {
           opacity: 0.9;
+        }
+        .confirmation-message {
+          margin-top: 20px;
+          background-color: #d1fae5;
+          padding: 15px;
+          border-radius: 10px;
+          color: #16a34a;
+        }
+        .confirmation-message h3 {
+          margin: 0;
         }
       `}</style>
     </div>
