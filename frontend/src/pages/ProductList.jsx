@@ -1,67 +1,65 @@
 import React, { useState } from 'react';
-import { jsPDF } from 'jspdf';  // Importez jsPDF pour générer un PDF
+import { useNavigate } from 'react-router-dom';
+import { jsPDF } from 'jspdf';
+
+function exportToCSV(products, filename = 'products.csv') {
+  const headers = ['Nom', 'Quantité', 'Stock Min', 'Prix (€)'];
+  const rows = products.map(p => [p.name, p.quantity, p.minQuantity, p.price.toFixed(2)]);
+
+  let csvContent = 'data:text/csv;charset=utf-8,' + headers.join(',') + '\n' + rows.map(e => e.join(',')).join('\n');
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
 
 export default function ProductList() {
   const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: 'Produit A',
-      quantity: 10,
-      minQuantity: 5,
-      price: 12.5
-    },
-    {
-      id: 2,
-      name: 'Produit B',
-      quantity: 4,
-      minQuantity: 6,
-      price: 8.0
-    }
+    { id: 1, name: 'Produit A', quantity: 10, minQuantity: 5, price: 12.5 },
+    { id: 2, name: 'Produit B', quantity: 4, minQuantity: 6, price: 8.0 }
   ]);
 
   const [editProduct, setEditProduct] = useState(null);
+  const navigate = useNavigate(); // ✅ Hook utilisé correctement ici
 
   const handleDelete = (id) => {
-    const updated = products.filter(product => product.id !== id);
+    const updated = products.filter(p => p.id !== id);
     setProducts(updated);
   };
 
-  const handleEdit = (product) => {
-    setEditProduct(product);
-  };
+  const handleEdit = (product) => setEditProduct(product);
 
   const handleTransaction = (id) => {
-    setProducts(products.map(p =>
-      p.id === id ? { ...p, quantity: p.quantity - 1 } : p
-    ));
-    alert(`1 unité retirée du produit ID ${id}`);
+    navigate(`/transaction/${id}`); // ✅ Redirection vers la page transaction
   };
 
   const handleReport = () => {
     const doc = new jsPDF();
     doc.text('Rapport des Produits', 20, 10);
-    let yPosition = 20;
-
-    products.forEach((product) => {
-      doc.text(`Nom: ${product.name} | Quantité: ${product.quantity} | Stock Min: ${product.minQuantity} | Prix: ${product.price.toFixed(2)} €`, 20, yPosition);
-      yPosition += 10;
+    let y = 20;
+    products.forEach(p => {
+      doc.text(`Nom: ${p.name} | Quantité: ${p.quantity} | Stock Min: ${p.minQuantity} | Prix: ${p.price.toFixed(2)} €`, 20, y);
+      y += 10;
     });
-
-    doc.save('products_report.pdf');  // Sauvegarde du fichier PDF
+    doc.save('products_report.pdf');
   };
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    const updated = products.map(p =>
-      p.id === editProduct.id ? editProduct : p
-    );
-    setProducts(updated);
+    setProducts(products.map(p => (p.id === editProduct.id ? editProduct : p)));
     setEditProduct(null);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setEditProduct({ ...editProduct, [name]: name === "price" || name === "quantity" || name === "minQuantity" ? parseFloat(value) : value });
+    setEditProduct({
+      ...editProduct,
+      [name]: ['price', 'quantity', 'minQuantity'].includes(name) ? parseFloat(value) : value
+    });
   };
 
   return (
@@ -70,20 +68,18 @@ export default function ProductList() {
         body {
           margin: 0;
           font-family: 'Segoe UI', sans-serif;
-          background: linear-gradient(to bottom right, #74ebd5, #acb6e5);
+          background: linear-gradient(to right top, #dfe9f3, #ffffff);
         }
-
         .container {
           padding: 40px;
         }
-
         .title {
           text-align: center;
           color: #2b6777;
-          font-size: 2em;
+          font-size: 2.5em;
           margin-bottom: 30px;
+          font-weight: bold;
         }
-
         table {
           width: 100%;
           border-collapse: collapse;
@@ -92,34 +88,37 @@ export default function ProductList() {
           overflow: hidden;
           box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
-
         th, td {
           padding: 16px;
           text-align: center;
         }
-
         th {
           background-color: #2b6777;
           color: white;
         }
-
         tr:nth-child(even) {
           background-color: #f2f2f2;
         }
-
         .actions button {
-          margin: 0 4px;
+          display: block;
+          margin: 6px auto;
           padding: 8px 12px;
           border: none;
           border-radius: 6px;
           cursor: pointer;
           font-size: 0.9em;
+          transition: 0.3s ease;
+          width: 80%;
         }
-
         .edit { background-color: #f4a261; color: white; }
         .delete { background-color: #e76f51; color: white; }
         .transaction { background-color: #2a9d8f; color: white; }
         .report { background-color: #264653; color: white; }
+        .csv { background-color: #1d3557; color: white; }
+
+        .edit:hover, .delete:hover, .transaction:hover, .report:hover, .csv:hover {
+          opacity: 0.85;
+        }
 
         .modal {
           position: fixed;
@@ -131,6 +130,7 @@ export default function ProductList() {
           box-shadow: 0 10px 30px rgba(0,0,0,0.2);
           border-radius: 8px;
           z-index: 1000;
+          width: 300px;
         }
 
         .overlay {
@@ -151,6 +151,7 @@ export default function ProductList() {
 
       <div className="container">
         <h2 className="title">Liste des Produits</h2>
+
         <table>
           <thead>
             <tr>
@@ -169,10 +170,26 @@ export default function ProductList() {
                 <td>{p.minQuantity}</td>
                 <td>{p.price.toFixed(2)}</td>
                 <td className="actions">
-                  <button className="edit" onClick={() => handleEdit(p)}>Modifier</button>
-                  <button className="delete" onClick={() => handleDelete(p.id)}>Supprimer</button>
-                  <button className="transaction" onClick={() => handleTransaction(p.id)}>Transaction</button>
-                  <button className="report" onClick={() => handleReport(p.id)}>Report</button>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {/* Ligne 1 */}
+                    <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                      <button className="edit" onClick={() => handleEdit(p)}>Modifier</button>
+                      <button className="delete" onClick={() => handleDelete(p.id)}>Supprimer</button>
+                      <button className="transaction" onClick={() => handleTransaction(p.id)}>Transaction</button>
+                    </div>
+                    {/* Ligne 2 */}
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button className="csv" onClick={() => exportToCSV([p])}>Exporter CSV</button>
+                      <button className="report" onClick={() => {
+                        const doc = new jsPDF();
+                        doc.text(`Rapport - ${p.name}`, 20, 10);
+                        doc.text(`Quantité: ${p.quantity}`, 20, 20);
+                        doc.text(`Stock Min: ${p.minQuantity}`, 20, 30);
+                        doc.text(`Prix: ${p.price.toFixed(2)} €`, 20, 40);
+                        doc.save(`${p.name}_rapport.pdf`);
+                      }}>Exporter PDF</button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             ))}

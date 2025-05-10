@@ -4,6 +4,11 @@ import App from './App';
 import Authentification from './pages/Authentification';
 import AddProduct from './pages/AddProduct';
 import ProductList from './pages/ProductList';
+import CsvExport from './pages/CsvExport';
+import TransactionPage from './pages/TransactionPage';
+
+
+
 function Main() {
   return (
     <Router>
@@ -12,6 +17,8 @@ function Main() {
         <Route path="/authentification" element={<Authentification />} />
         <Route path="/AddProduct" element={<AddProduct />} />
         <Route path="/ProductList" element={<ProductList />} />
+        <Route path="/csv-export/:id" element={<CsvExport />} />
+        <Route path="/transaction/:id" element={<TransactionPage />} />
         
       </Routes>
     </Router>
