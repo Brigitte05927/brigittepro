@@ -6,7 +6,7 @@ export default function AddProduct() {
   const handleAdd = (e) => {
     e.preventDefault();
     // Simuler l’ajout
-    navigate('/product-list');
+    navigate('/productList');
   };
 
   return (

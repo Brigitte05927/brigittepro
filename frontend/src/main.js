@@ -1,15 +1,21 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App'
-import './index.css' // Assurez-vous que ce fichier existe
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import App from './App';
+import Authentification from './pages/Authentification';
+import AddProduct from './pages/AddProduct';
+import ProductList from './pages/ProductList';
+function Main() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<App />} />
+        <Route path="/authentification" element={<Authentification />} />
+        <Route path="/AddProduct" element={<AddProduct />} />
+        <Route path="/ProductList" element={<ProductList />} />
+        
+      </Routes>
+    </Router>
+  );
+}
 
-const root = ReactDOM.createRoot(document.getElementById('root'))
-
-root.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>
-)
+export default Main;
