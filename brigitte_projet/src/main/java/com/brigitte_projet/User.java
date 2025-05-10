@@ -17,7 +17,6 @@ public class User implements UserDetails {
     private String username;
     private String password;
     private String name;
-    private String bloodGroup;
     private String phone;
     
     @Enumerated(EnumType.STRING)
@@ -61,8 +60,6 @@ public class User implements UserDetails {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     
-    public String getBloodGroup() { return bloodGroup; }
-    public void setBloodGroup(String bloodGroup) { this.bloodGroup = bloodGroup; }
     
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
