@@ -47,21 +47,19 @@ public class ProductController {
     return repo.findByQuantityLessThan(10);
     } // ou utiliser une logique plus dynamique
 
-    @GetMapping("/api/export/csv")
-    public void exportCSV(HttpServletResponse response) throws IOException {
+    @GetMapping("/export/csv")
+public void exportCSV(HttpServletResponse response) throws IOException {
     response.setContentType("text/csv");
     response.setHeader("Content-Disposition", "attachment; filename=products.csv");
 
-    // Simule le CSV
     PrintWriter writer = response.getWriter();
     writer.println("ID,Nom,Prix");
     writer.println("1,Produit A,1000");
     writer.println("2,Produit B,2000");
     writer.flush();
     writer.close();
-    }
 }
-
+}
 
         
 
