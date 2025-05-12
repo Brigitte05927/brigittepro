@@ -6,7 +6,7 @@ import AddProduct from './pages/AddProduct';
 import ProductList from './pages/ProductList';
 import CsvExport from './pages/CsvExport';
 import TransactionPage from './pages/TransactionPage';
-
+import ReportPage from './pages/ReportPage';
 
 
 function Main() {
@@ -18,6 +18,7 @@ function Main() {
         <Route path="/AddProduct" element={<AddProduct />} />
         <Route path="/ProductList" element={<ProductList />} />
         <Route path="/csv-export/:id" element={<CsvExport />} />
+         <Route path="/reportpage" element={<ReportPage />} />
         <Route path="/transaction/:id" element={<TransactionPage />} />
         
       </Routes>
