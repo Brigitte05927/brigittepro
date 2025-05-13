@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import authService from './services/auth';
+import API_URL from './services/auth';
 
 function App() {
   const navigate = useNavigate(); 
@@ -16,8 +16,7 @@ function App() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    const login = await authService.login(username, password);
-
+    const login = await API_URL.login(username, password);
     if (!login) {
       alert('Identifiants incorrects');
     } else {

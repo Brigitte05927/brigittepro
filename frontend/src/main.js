@@ -7,6 +7,7 @@ import ProductList from './pages/ProductList';
 import CsvExport from './pages/CsvExport';
 import TransactionPage from './pages/TransactionPage';
 import ReportPage from './pages/ReportPage';
+import AuthProvider from './services/AuthProvider';
 
 
 function Main() {
@@ -19,6 +20,7 @@ function Main() {
         <Route path="/ProductList" element={<ProductList />} />
         <Route path="/csv-export/:id" element={<CsvExport />} />
          <Route path="/reportpage" element={<ReportPage />} />
+          <Route path="/AuthProvider" element={<AuthProvider />} />
         <Route path="/transaction/:id" element={<TransactionPage />} />
         
       </Routes>
