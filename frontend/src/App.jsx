@@ -1,23 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import authService from './services/auth';
 
 function App() {
   const navigate = useNavigate(); 
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [erreur, setErreur] = useState(null);
 
   const toggleAdminLogin = () => {
     setShowAdminLogin(!showAdminLogin);
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const username = e.target.username.value;
-    const password = e.target.password.value;
-  
-    if (username === 'admin' && password === 'admin123') {
-      navigate('/AddProduct'); // ✅ utilise le navigate déjà défini en haut
-    } else {
+
+    const login = await authService.login(username, password);
+
+    if (!login) {
       alert('Identifiants incorrects');
+    } else {
+      navigate('/AddProduct');
     }
   };
   
@@ -190,11 +194,11 @@ function App() {
                   <h3>Connexion Administrateur</h3>
                   <div className="form-group">
                     <label htmlFor="username">Nom d'utilisateur</label>
-                    <input type="text" id="username" name="username" required />
+                    <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} name="username" required />
                   </div>
                   <div className="form-group">
                     <label htmlFor="password">Mot de passe</label>
-                    <input type="password" id="password" name="password" required />
+                    <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} name="password" required />
                   </div>
                   <div className="form-actions">
                     <button type="button" onClick={toggleAdminLogin}>Annuler</button>
