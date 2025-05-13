@@ -6,12 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/reports")
-@CrossOrigin
+@CrossOrigin(origins = "*")
 public class ReportController {
 
     private static final Logger logger = LoggerFactory.getLogger(ReportController.class);
@@ -22,44 +23,46 @@ public class ReportController {
     @Autowired
     private TransactionRepository transactionRepo;
 
-    // Route de base : http://localhost:8080/api/reports
+    // Route de base
     @GetMapping
     public String reportHome() {
-        logger.info("Requête reçue sur /api/reports");
-        return "Bienvenue dans l'API des rapports. Utilisez :\n" +
-               "- /low-stock pour les produits en stock faible\n" +
-               "- /sales?from=YYYY-MM-DDTHH:mm:ss&to=YYYY-MM-DDTHH:mm:ss pour les ventes";
+        logger.info("GET /api/reports appelé");
+        return "Bienvenue dans l'API des rapports.\n" +
+                "- /low-stock : produits à stock faible\n" +
+                "- /sales?from=YYYY-MM-DDTHH:mm:ss&to=YYYY-MM-DDTHH:mm:ss : ventes entre deux dates";
     }
 
-    // Route : /api/reports/low-stock
+    // Liste des produits à stock faible
     @GetMapping("/low-stock")
     public List<Product> getLowStockProducts() {
-        logger.info("Requête reçue sur /api/reports/low-stock");
+        logger.info("GET /api/reports/low-stock appelé");
         return productRepo.findAll().stream()
                 .filter(p -> p.getQuantity() < p.getMinQuantity())
                 .collect(Collectors.toList());
     }
 
-    // Route : /api/reports/sales?from=2025-05-01T00:00:00&to=2025-05-10T23:59:59
+    // Liste des ventes "OUT" entre deux dates
     @GetMapping("/sales")
     public List<Transaction> getSalesBetween(
-            @RequestParam("from") String from,
-            @RequestParam("to") String to) {
+            @RequestParam String from,
+            @RequestParam String to) {
 
-        logger.info("Requête reçue sur /api/reports/sales avec from={} et to={}", from, to);
+        logger.info("GET /api/reports/sales avec from={} et to={}", from, to);
 
         try {
-            LocalDateTime fromDate = LocalDateTime.parse(from);
-            LocalDateTime toDate = LocalDateTime.parse(to);
+            // Parsing avec un format plus robuste si tu veux personnaliser
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+            LocalDateTime fromDate = LocalDateTime.parse(from, formatter);
+            LocalDateTime toDate = LocalDateTime.parse(to, formatter);
 
             return transactionRepo.findAll().stream()
-                    .filter(t -> t.getType().equalsIgnoreCase("OUT"))
+                    .filter(t -> "OUT".equalsIgnoreCase(t.getType()))
                     .filter(t -> !t.getDate().isBefore(fromDate) && !t.getDate().isAfter(toDate))
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
-            logger.error("Erreur de parsing des dates : {}", e.getMessage());
-            throw new RuntimeException("Format de date invalide. Utilise : YYYY-MM-DDTHH:mm:ss");
+            logger.error("Erreur parsing date: {}", e.getMessage());
+            throw new RuntimeException("Format invalide. Utilisez : YYYY-MM-DDTHH:mm:ss");
         }
     }
 }
