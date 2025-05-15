@@ -7,7 +7,10 @@ import ProductList from './pages/ProductList';
 import CsvExport from './pages/CsvExport';
 import TransactionPage from './pages/TransactionPage';
 import ReportPage from './pages/ReportPage';
+// src/Main.js
 import AuthProvider from './services/AuthProvider';
+
+
 
 
 function Main() {

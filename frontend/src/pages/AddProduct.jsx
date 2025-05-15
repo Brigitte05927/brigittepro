@@ -1,13 +1,34 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function AddProduct() {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: '',
+    quantity: '',
+    minQuantity: '',
+    price: ''
+  });
 
-  const handleAdd = (e) => {
-    e.preventDefault();
-    // Simuler l’ajout
-    navigate('/productList');
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+const handleAdd = async (e) => {
+  e.preventDefault();
+  try {
+    await axios.post('http://localhost:8080/api/products', formData, {
+      withCredentials: true, // Si nécessaire
+    });
+    alert('Produit ajouté avec succès !');
+    navigate('/productList');
+  } catch (error) {
+    console.error('Erreur :', error.response ? error.response.data : error.message);
+    alert('Échec de l’ajout du produit.');
+  }
+};
+
 
   return (
     <>
@@ -66,10 +87,42 @@ export default function AddProduct() {
       <div className="add-product-container">
         <form onSubmit={handleAdd} className="form-box">
           <h2>Ajouter un produit</h2>
-          <input name="name" placeholder="Nom du produit" required className="input-field" />
-          <input name="quantity" type="number" placeholder="Quantité" required className="input-field" />
-          <input name="minQuantity" type="number" placeholder="Stock minimum" required className="input-field" />
-          <input name="price" type="number" step="0.01" placeholder="Prix (€)" required className="input-field" />
+          <input
+            name="name"
+            placeholder="Nom du produit"
+            required
+            className="input-field"
+            value={formData.name}
+            onChange={handleChange}
+          />
+          <input
+            name="quantity"
+            type="number"
+            placeholder="Quantité"
+            required
+            className="input-field"
+            value={formData.quantity}
+            onChange={handleChange}
+          />
+          <input
+            name="minQuantity"
+            type="number"
+            placeholder="Stock minimum"
+            required
+            className="input-field"
+            value={formData.minQuantity}
+            onChange={handleChange}
+          />
+          <input
+            name="price"
+            type="number"
+            step="0.01"
+            placeholder="Prix (€)"
+            required
+            className="input-field"
+            value={formData.price}
+            onChange={handleChange}
+          />
           <button type="submit" className="submit-button">Ajouter</button>
         </form>
       </div>

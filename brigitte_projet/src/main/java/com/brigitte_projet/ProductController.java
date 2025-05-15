@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:3002") // autorise React
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -24,7 +24,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public Product create(@RequestBody Product product) {
+    public Product createProduct(@RequestBody Product product) {
         return repo.save(product);
     }
 

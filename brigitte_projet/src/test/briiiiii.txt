@@ -1,0 +1,953 @@
+package com.brigitte_projet.config; // Remplace par ton vrai package
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class CorsConfig {
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:3000")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+            }
+        };
+    }
+}
+et package com.brigitte_projet.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfig {
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/**")
+                        .allowedOrigins("http://localhost:3002")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE")
+                        .allowedHeaders("*");
+            }
+        };
+    }
+}
+et package com.brigitte_projet;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.annotation.PostConstruct;
+
+@Service
+@Transactional
+public class AdminService {
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
+    @PostConstruct  // Cette méthode sera exécutée après l'initialisation du bean
+    public void initAdmin() {
+        // Vérifie si un admin existe déjà
+        if (userRepository.findByUsername("admin").isEmpty()) {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setName("Administrator");
+            admin.setRole(Role.ADMIN);
+            admin.setPhone("+25761307079");
+            
+            userRepository.save(admin);
+            System.out.println("Admin account has been created");
+        }
+    }
+}
+et package com.brigitte_projet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    
+    private final AuthenticationProvider authenticationProvider;
+    private final JwtService jwtService;
+    private final UserRepository userRepository; // Ajout du repository
+
+    public AuthController(AuthenticationProvider authenticationProvider, 
+                         JwtService jwtService,
+                         UserRepository userRepository) {
+        this.authenticationProvider = authenticationProvider;
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        try {
+            logger.info("Tentative de connexion pour l'utilisateur: {}", loginRequest.getUsername());
+            
+            // Vérifier si l'utilisateur existe
+            var userOpt = userRepository.findByUsername(loginRequest.getUsername());
+            if (userOpt.isEmpty()) {
+                logger.error("Utilisateur non trouvé: {}", loginRequest.getUsername());
+                return ResponseEntity.badRequest().body(Map.of("error", "Utilisateur non trouvé"));
+            }
+
+            // Tentative d'authentification
+            Authentication authentication = authenticationProvider.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
+            );
+
+            User user = userOpt.get();
+            String token = jwtService.generateToken(user);
+            
+            logger.info("Connexion réussie pour l'utilisateur: {}", loginRequest.getUsername());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("user", Map.of(
+                "username", user.getUsername(),
+                "role", user.getRole().name(),
+                "authorities", authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toList())
+            ));
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (BadCredentialsException e) {
+            logger.error("Échec d'authentification pour l'utilisateur: {} - Mauvaises credentials", 
+                        loginRequest.getUsername());
+            return ResponseEntity
+                .badRequest()
+                .body(Map.of("error", "Identifiants invalides"));
+                
+        } catch (AuthenticationException e) {
+            logger.error("Erreur d'authentification pour l'utilisateur: {} - {}", 
+                        loginRequest.getUsername(), e.getMessage());
+            return ResponseEntity
+                .badRequest()
+                .body(Map.of("error", "Erreur d'authentification"));
+                
+        } catch (Exception e) {
+            logger.error("Erreur inattendue lors de la connexion pour l'utilisateur: {} - {}", 
+                        loginRequest.getUsername(), e.getMessage(), e);
+            return ResponseEntity
+                .internalServerError()
+                .body(Map.of("error", "Une erreur interne s'est produite"));
+        }
+    }
+} et package com.brigitte_projet;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class BrigitteProjetApplication {
+	public static void main(String[] args) {
+		SpringApplication.run(BrigitteProjetApplication.class, args);
+	}
+
+}
+et package com.brigitte_projet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
+    
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        logger.info("Tentative de chargement de l'utilisateur: {}", username);
+        
+        try {
+            User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    logger.error("Utilisateur non trouvé: {}", username);
+                    return new UsernameNotFoundException("User not found with username: " + username);
+                });
+
+            logger.info("Utilisateur trouvé: {} avec le rôle: {}", username, user.getRole());
+            
+            return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+            );
+        } catch (Exception e) {
+            logger.error("Erreur lors du chargement de l'utilisateur: {} - {}", username, e.getMessage(), e);
+            throw e;
+        }
+    }
+} et package com.brigitte_projet;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/export")
+public class ExportController {
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @GetMapping("/products")
+    public void exportProductsToCSV(HttpServletResponse response) throws IOException {
+        String date = LocalDate.now().toString(); // format: yyyy-MM-dd
+        String filename = "products_" + date + ".csv";
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+
+        List<Product> products = productRepository.findAll();
+
+        PrintWriter writer = response.getWriter();
+        writer.println("ID,Nom,Quantité,Prix");
+
+        for (Product p : products) {
+            writer.println(p.getId() + "," + p.getName() + "," + p.getQuantity() + "," + p.getPrice());
+        }
+
+        writer.flush();
+        writer.close();
+    }
+}
+et // src/main/java/com/example/blood_donate/security/JwtAuthFilter.java
+package com.brigitte_projet;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import java.io.IOException;
+
+@Component
+public class JwtAuthFilter extends OncePerRequestFilter {
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
+
+    public JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+        this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
+    }
+
+    @Override
+    protected void doFilterInternal(@SuppressWarnings("null") HttpServletRequest request, 
+                                  @SuppressWarnings("null") HttpServletResponse response, 
+                                  @SuppressWarnings("null") FilterChain filterChain) throws ServletException, IOException {
+        final String authHeader = request.getHeader("Authorization");
+        
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        final String jwt = authHeader.substring(7);
+        final String username = jwtService.extractUsername(jwt);
+
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+            
+            if (jwtService.validateToken(jwt, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+        }
+        filterChain.doFilter(request, response);
+    }
+}et package com.brigitte_projet;
+
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+// import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+
+@Configuration
+public class JwtConfig {
+    @Value("${jwt.secret:default-secret-key-must-be-replaced-in-production}")
+    private String secret;
+    
+    @Value("${jwt.expiration:86400}")
+    private Long expiration;
+
+    @Bean
+    public SecretKey secretKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public Long getExpiration() {
+        return expiration;
+    }
+}
+et package com.brigitte_projet;
+
+// import com.example.blood_donate.User;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+@Service
+public class JwtService {
+    private final JwtConfig jwtConfig;
+
+    public JwtService(JwtConfig jwtConfig) {
+        this.jwtConfig = jwtConfig;
+    }
+
+    public String generateToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole().name());
+        return createToken(claims, user.getUsername());
+    }
+
+    public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, userDetails.getUsername());
+    }
+
+    private String createToken(Map<String, Object> claims, String subject) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getExpiration() * 1000))
+                .signWith(jwtConfig.secretKey())
+                .compact();
+    }
+
+    public Boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(jwtConfig.secretKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+}et package com.brigitte_projet;
+
+public class LoginRequest {
+    private String username;
+    private String password;
+
+    // Constructeur par défaut
+    public LoginRequest() {}
+
+    // Getters et Setters
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}et package com.brigitte_projet;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private int quantity;
+    private int minQuantity;
+    private double price;
+
+    // Getters et Setters
+    public Long getId() { return id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    public int getMinQuantity() { return minQuantity; }
+    public void setMinQuantity(int minQuantity) { this.minQuantity = minQuantity; }
+
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
+}
+
+et package com.brigitte_projet;
+
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+@CrossOrigin(origins = "http://localhost:3002") // autorise React
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    private final ProductRepository repo;
+
+    public ProductController(ProductRepository repo) {
+        this.repo = repo;
+    }
+
+    @GetMapping
+    public List<Product> getAll() {
+        return repo.findAll();
+    }
+
+    @PostMapping
+    public Product createProduct(@RequestBody Product product) {
+        return repo.save(product);
+    }
+
+    @PutMapping("/{id}")
+    public Product update(@PathVariable Long id, @RequestBody Product updated) {
+        Product product = repo.findById(id).orElseThrow();
+        product.setName(updated.getName());
+        product.setQuantity(updated.getQuantity());
+        product.setMinQuantity(updated.getMinQuantity());
+        product.setPrice(updated.getPrice());
+        return repo.save(product);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        repo.deleteById(id);
+    }
+    @GetMapping("/low-stock")
+    public List<Product> getLowStockProducts() {
+    return repo.findByQuantityLessThan(10);
+    } // ou utiliser une logique plus dynamique
+
+    @GetMapping("/export/csv")
+public void exportCSV(HttpServletResponse response) throws IOException {
+    response.setContentType("text/csv");
+    response.setHeader("Content-Disposition", "attachment; filename=products.csv");
+
+    PrintWriter writer = response.getWriter();
+    writer.println("ID,Nom,Prix");
+    writer.println("1,Produit A,1000");
+    writer.println("2,Produit B,2000");
+    writer.flush();
+    writer.close();
+}
+}
+
+
+et package com.brigitte_projet;
+
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+public interface ProductRepository extends JpaRepository<Product, Long> {
+
+    // ⚡️ Trouver tous les produits dont quantity < minQuantity
+    @Query("SELECT p FROM Product p WHERE p.quantity < p.minQuantity")
+    List<Product> findByQuantityLessThanMinQuantity();
+
+    List<Product> findByQuantityLessThan(int i);
+}
+et package com.brigitte_projet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/reports")
+@CrossOrigin(origins = "*")
+public class ReportController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReportController.class);
+
+    @Autowired
+    private ProductRepository productRepo;
+
+    @Autowired
+    private TransactionRepository transactionRepo;
+
+    // Route de base
+    @GetMapping
+    public String reportHome() {
+        logger.info("GET /api/reports appelé");
+        return "Bienvenue dans l'API des rapports.\n" +
+                "- /low-stock : produits à stock faible\n" +
+                "- /sales?from=YYYY-MM-DDTHH:mm:ss&to=YYYY-MM-DDTHH:mm:ss : ventes entre deux dates";
+    }
+
+    // Liste des produits à stock faible
+    @GetMapping("/low-stock")
+    public List<Product> getLowStockProducts() {
+        logger.info("GET /api/reports/low-stock appelé");
+        return productRepo.findAll().stream()
+                .filter(p -> p.getQuantity() < p.getMinQuantity())
+                .collect(Collectors.toList());
+    }
+
+    // Liste des ventes "OUT" entre deux dates
+    @GetMapping("/sales")
+    public List<Transaction> getSalesBetween(
+            @RequestParam String from,
+            @RequestParam String to) {
+
+        logger.info("GET /api/reports/sales avec from={} et to={}", from, to);
+
+        try {
+            // Parsing avec un format plus robuste si tu veux personnaliser
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+            LocalDateTime fromDate = LocalDateTime.parse(from, formatter);
+            LocalDateTime toDate = LocalDateTime.parse(to, formatter);
+
+            return transactionRepo.findAll().stream()
+                    .filter(t -> "OUT".equalsIgnoreCase(t.getType()))
+                    .filter(t -> !t.getDate().isBefore(fromDate) && !t.getDate().isAfter(toDate))
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            logger.error("Erreur parsing date: {}", e.getMessage());
+            throw new RuntimeException("Format invalide. Utilisez : YYYY-MM-DDTHH:mm:ss");
+        }
+    }
+}
+et package com.brigitte_projet;
+
+public enum Role {
+        ADMIN, DONOR
+}
+ et package com.brigitte_projet;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfigi {
+
+    private final JwtAuthFilter jwtAuthFilter;
+    private final UserDetailsService userDetailsService;
+
+    public SecurityConfigi(JwtAuthFilter jwtAuthFilter, UserDetailsService userDetailsService) {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.userDetailsService = userDetailsService;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/login", "/api/register").permitAll()
+                .requestMatchers("/api/transactions").permitAll()
+                .requestMatchers("/api/products/**").permitAll() // <<<<< ajoute ceci si tu veux tester sans token
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Origin", "Accept", "X-Requested-With"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+}
+et package com.brigitte_projet;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Data
+public class Transaction {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Long productId;
+    private String type; // "IN" ou "OUT"
+    private int quantity;
+    private LocalDateTime date;
+
+    public Transaction() {
+        this.date = LocalDateTime.now();
+    }
+
+    // Getters et Setters
+}
+et package com.brigitte_projet;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/transactions")
+@CrossOrigin
+public class TransactionController {
+
+    @Autowired
+    private TransactionService service;
+
+    @GetMapping
+    public List<Transaction> getAll() {
+        return service.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public Transaction getById(@PathVariable Long id) {
+        return service.getById(id);
+    }
+
+    @PostMapping
+    public Transaction create(@RequestBody Transaction transaction) {
+        return service.save(transaction);
+    }
+}
+et package com.brigitte_projet;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+}
+package com.brigitte_projet;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class TransactionService {
+
+    @Autowired
+    private TransactionRepository repository;
+
+    public List<Transaction> getAll() {
+        return repository.findAll();
+    }
+
+    public Transaction getById(Long id) {
+        return repository.findById(id).orElse(null);
+    }
+
+    public Transaction save(Transaction t) {
+        return repository.save(t);
+    }
+}
+et package com.brigitte_projet;
+
+import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.Collections;
+
+@Entity
+public class User implements UserDetails {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    private String username;
+    private String password;
+    private String name;
+    private String phone;
+    
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    // Getters et setters existants...
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
+}et package com.brigitte_projet;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+// import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api")
+// @CrossOrigin(origins = "http://localhost:5173")
+public class UserController {
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/register")
+    public ResponseEntity<User> registerDonor(@RequestBody User user) {
+        return ResponseEntity.ok(userService.CreateDonor(user));
+    }
+
+    @GetMapping("/admin/donors")
+    public ResponseEntity<List<User>> getAllDonors() {
+        return ResponseEntity.ok(userService.getAllDonors());
+    }
+    
+}
+et package com.brigitte_projet;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface UserRepository extends  JpaRepository<User, Long> {
+    Optional<User> findByUsername(String username);
+    List<User> findByRole(Role role);
+}
+et package com.brigitte_projet;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import jakarta.transaction.Transactional;
+
+@Service
+@Transactional
+public class UserService {
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    public User CreateDonor(User user) {
+        user.setRole(Role.DONOR);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+    public List<User> getAllDonors() {
+        return userRepository.findByRole(Role.DONOR);
+    }
+    
+}
+et spring.application.name=brigitte_projet
+spring.datasource.url=jdbc:mysql://localhost:3306/brigitte_inventory
+spring.datasource.username=root
+spring.datasource.password=
+server.port=8080
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+
+et package com.brigitte_projet;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class BrigitteProjetApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
