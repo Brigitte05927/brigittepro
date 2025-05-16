@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { FaEdit, FaTrash, FaExchangeAlt, FaFilePdf, FaFileCsv, FaChartBar } from 'react-icons/fa';
 
 const ProductList = () => {
     const [products, setProducts] = useState([]);
@@ -8,7 +9,6 @@ const ProductList = () => {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // Charger les produits
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -24,10 +24,9 @@ const ProductList = () => {
         fetchProducts();
     }, []);
 
-    // Gestion des actions
     const handleDelete = async (id) => {
         if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) return;
-        
+
         try {
             await axios.delete(`http://localhost:8080/api/products/${id}`);
             setProducts(products.filter(p => p.id !== id));
@@ -69,103 +68,107 @@ const ProductList = () => {
 
     const handleGlobalReport = () => navigate('/global-report');
 
-    // Styles CSS intégrés
     const styles = `
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #e0f7fa, #ffffff);
+        }
+
         .product-list-container {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 40px auto;
             padding: 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
-        
+
         .product-list-title {
-            color: #2b6777;
             text-align: center;
-            margin-bottom: 25px;
-            font-size: 2rem;
+            color: #2b6777;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
         }
-        
+
         .product-table {
             width: 100%;
             border-collapse: collapse;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            border-radius: 8px;
         }
-        
+
         .product-table th {
             background-color: #2b6777;
             color: white;
             padding: 15px;
             text-align: left;
         }
-        
+
         .product-table td {
             padding: 12px 15px;
             border-bottom: 1px solid #e0e0e0;
         }
-        
+
         .product-table tr:nth-child(even) {
-            background-color: #f8f9fa;
+            background-color: #f4f8f9;
         }
-        
+
         .product-table tr:hover {
-            background-color: #f1f1f1;
+            background-color: #f0f0f0;
         }
-        
+
         .action-buttons {
             display: flex;
-            gap: 8px;
             flex-wrap: wrap;
+            gap: 6px;
         }
-        
+
         .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
             border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
+            padding: 6px 10px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            color: white;
             font-size: 0.85rem;
+            font-weight: bold;
+            color: white;
+            transition: all 0.3s ease;
         }
-        
+
         .edit-btn { background-color: #f39c12; }
         .delete-btn { background-color: #e74c3c; }
         .transaction-btn { background-color: #3498db; }
         .pdf-btn { background-color: #2b6777; }
         .csv-btn { background-color: #27ae60; }
         .report-btn { background-color: #9b59b6; }
-        
+
         .action-btn:hover {
             opacity: 0.9;
-            transform: translateY(-1px);
         }
-        
-        .loading-message {
-            text-align: center;
-            padding: 40px;
-            font-size: 1.2rem;
-            color: #555;
-        }
-        
+
+        .loading-message,
         .error-message {
-            background-color: #ffecec;
-            color: #e74c3c;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid #e74c3c;
+            text-align: center;
+            font-size: 1.1rem;
+            padding: 20px;
         }
-        
+
+        .error-message {
+            color: #e74c3c;
+            background-color: #ffecec;
+            border-left: 4px solid #e74c3c;
+            margin-bottom: 20px;
+        }
+
         .refresh-btn {
+            margin-top: 10px;
+            padding: 10px 15px;
             background-color: #2b6777;
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 10px;
         }
     `;
 
@@ -173,7 +176,7 @@ const ProductList = () => {
         return (
             <div className="product-list-container">
                 <style>{styles}</style>
-                <div className="loading-message">Chargement des produits en cours...</div>
+                <div className="loading-message">Chargement des produits...</div>
             </div>
         );
     }
@@ -184,6 +187,7 @@ const ProductList = () => {
                 <style>{styles}</style>
                 <div className="error-message">
                     {error}
+                    <br />
                     <button className="refresh-btn" onClick={() => window.location.reload()}>
                         Actualiser la page
                     </button>
@@ -195,9 +199,8 @@ const ProductList = () => {
     return (
         <div className="product-list-container">
             <style>{styles}</style>
-            
             <h1 className="product-list-title">Gestion des Produits</h1>
-            
+
             <table className="product-table">
                 <thead>
                     <tr>
@@ -217,41 +220,23 @@ const ProductList = () => {
                             <td>{product.price.toFixed(2)}</td>
                             <td>
                                 <div className="action-buttons">
-                                    <button 
-                                        className="action-btn edit-btn"
-                                        onClick={() => handleEdit(product.id)}
-                                    >
-                                        Modifier
+                                    <button className="action-btn edit-btn" onClick={() => handleEdit(product.id)}>
+                                        <FaEdit /> Modifier
                                     </button>
-                                    <button 
-                                        className="action-btn delete-btn"
-                                        onClick={() => handleDelete(product.id)}
-                                    >
-                                        Supprimer
+                                    <button className="action-btn delete-btn" onClick={() => handleDelete(product.id)}>
+                                        <FaTrash /> Supprimer
                                     </button>
-                                    <button 
-                                        className="action-btn transaction-btn"
-                                        onClick={() => handleTransaction(product.id)}
-                                    >
-                                        Transaction
+                                    <button className="action-btn transaction-btn" onClick={() => handleTransaction(product.id)}>
+                                        <FaExchangeAlt /> Transaction
                                     </button>
-                                    <button 
-                                        className="action-btn pdf-btn"
-                                        onClick={() => handleGeneratePdf(product.id)}
-                                    >
-                                        PDF
+                                    <button className="action-btn pdf-btn" onClick={() => handleGeneratePdf(product.id)}>
+                                        <FaFilePdf /> PDF
                                     </button>
-                                    <button 
-                                        className="action-btn csv-btn"
-                                        onClick={handleExportCsv}
-                                    >
-                                        CSV
+                                    <button className="action-btn csv-btn" onClick={handleExportCsv}>
+                                        <FaFileCsv /> CSV
                                     </button>
-                                    <button 
-                                        className="action-btn report-btn"
-                                        onClick={handleGlobalReport}
-                                    >
-                                        Rapport
+                                    <button className="action-btn report-btn" onClick={handleGlobalReport}>
+                                        <FaChartBar /> Rapport
                                     </button>
                                 </div>
                             </td>
