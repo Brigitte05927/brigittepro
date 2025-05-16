@@ -21,7 +21,7 @@ const EditProduct = () => {
         const res = await axios.get(`http://localhost:8080/api/products/${id}`);
         setProduct(res.data);
       } catch (err) {
-        setError("Erreur lors du chargement du produit.");
+        setError("URASHOBORA GUHINDURA UKO USHAKA NUKURI.");
       }
     };
     fetchProduct();
@@ -38,7 +38,7 @@ const EditProduct = () => {
       alert("Produit mis à jour avec succès !");
       navigate('/ProductList'); // 🔁 Redirection vers la page liste des produits
     } catch (err) {
-      setError("Erreur lors de la mise à jour.");
+      setError("URASHOBORA GUHINDURA UKO USHAKA NUKURI.");
     }
   };
 
