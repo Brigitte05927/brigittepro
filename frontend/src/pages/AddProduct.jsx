@@ -18,14 +18,24 @@ export default function AddProduct() {
 const handleAdd = async (e) => {
   e.preventDefault();
   try {
-    await axios.post('http://localhost:8080/api/products', formData, {
-      withCredentials: true, // Si nécessaire
-    });
-    alert('Produit ajouté avec succès !');
+    const response = await axios.post('http://localhost:8080/api/products', 
+      JSON.stringify(formData), // Convertir explicitement en JSON
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    console.log('Réponse:', response.data);
+    alert('Produit ajouté !');
     navigate('/productList');
   } catch (error) {
-    console.error('Erreur :', error.response ? error.response.data : error.message);
-    alert('Échec de l’ajout du produit.');
+    console.error('Erreur complète:', {
+      message: error.message,
+      response: error.response?.data,
+      request: error.request
+    });
+    alert('Erreur: ' + (error.response?.data?.message || error.message));
   }
 };
 

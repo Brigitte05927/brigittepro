@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
-@CrossOrigin(origins = "http://localhost:3002") // autorise React
+
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -53,9 +53,9 @@ public void exportCSV(HttpServletResponse response) throws IOException {
     response.setHeader("Content-Disposition", "attachment; filename=products.csv");
 
     PrintWriter writer = response.getWriter();
-    writer.println("ID,Nom,Prix");
-    writer.println("1,Produit A,1000");
-    writer.println("2,Produit B,2000");
+    // writer.println("ID,Nom,Prix");
+    // writer.println("1,Produit A,1000");
+    // writer.println("2,Produit B,2000");
     writer.flush();
     writer.close();
 }
