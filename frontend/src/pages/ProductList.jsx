@@ -35,19 +35,28 @@ const ProductList = () => {
         }
     };
 
-    const handleEdit = (id) => navigate(`/edit-product/${id}`);
-    const handleTransaction = (id) => navigate(`/transaction/${id}`);
+    const handleEdit = (id) => {
+        // Rediriger vers la page de modification avec l'ID
+        navigate(`/edit-product/${id}`);
+    };
+
+    const handleTransaction = (id) => {
+        navigate(`/transaction/${id}`);
+    };
 
     const handleGeneratePdf = async (id) => {
         try {
             const response = await axios.get(`http://localhost:8080/api/products/${id}/report`, {
-                responseType: 'blob'
+                responseType: 'blob',
             });
+
             const blob = new Blob([response.data], { type: 'application/pdf' });
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
-            link.download = `produit_${id}_rapport.pdf`;
+            link.download = `rapport_produit_${id}.pdf`;
+            document.body.appendChild(link);
             link.click();
+            link.remove();
         } catch (err) {
             setError("Erreur de génération du PDF: " + err.message);
         }
@@ -55,7 +64,9 @@ const ProductList = () => {
 
     const handleExportCsv = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/products/export/csv');
+            const response = await axios.get('http://localhost:8080/api/products/export/csv', {
+                responseType: 'blob'
+            });
             const blob = new Blob([response.data], { type: 'text/csv' });
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
