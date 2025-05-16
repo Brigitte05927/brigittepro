@@ -3,80 +3,175 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const EditProduct = () => {
-    const { id } = useParams(); // récupère l'id du produit dans l'URL
-    const navigate = useNavigate();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [saving, setSaving] = useState(false);
+  const [product, setProduct] = useState({
+    name: '',
+    quantity: '',
+    minQuantity: '',
+    price: '',
+  });
 
-    useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8080/api/products/${id}`);
-                setProduct(response.data);
-            } catch (err) {
-                setError("Produit introuvable.");
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProduct();
-    }, [id]);
+  const [error, setError] = useState(null);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setProduct(prev => ({ ...prev, [name]: name === 'price' || name === 'quantity' || name === 'minQuantity' ? Number(value) : value }));
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8080/api/products/${id}`);
+        setProduct(res.data);
+      } catch (err) {
+        setError("Erreur lors du chargement du produit.");
+      }
     };
+    fetchProduct();
+  }, [id]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSaving(true);
-        try {
-            await axios.put(`http://localhost:8080/api/products/${id}`, product);
-            alert('Produit modifié avec succès !');
-            navigate('/'); // redirige vers la liste des produits
-        } catch (err) {
-            alert("Erreur lors de la modification : " + (err.response?.data?.message || err.message));
-        } finally {
-            setSaving(false);
-        }
-    };
+  const handleChange = (e) => {
+    setProduct({ ...product, [e.target.name]: e.target.value });
+  };
 
-    if (loading) return <div style={{ padding: 20, textAlign: 'center' }}>Chargement du produit...</div>;
-    if (error) return <div style={{ padding: 20, color: 'red', textAlign: 'center' }}>{error}</div>;
-    if (!product) return null;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`http://localhost:8080/api/products/${id}`, product);
+      alert("Produit mis à jour avec succès !");
+      navigate('/ProductList'); // 🔁 Redirection vers la page liste des produits
+    } catch (err) {
+      setError("Erreur lors de la mise à jour.");
+    }
+  };
 
-    return (
-        <div style={{ maxWidth: 600, margin: '40px auto', padding: 20, background: 'white', borderRadius: 16, boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-            <h2 style={{ color: '#2b6777', marginBottom: 20 }}>Modifier le produit</h2>
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: 15 }}>
-                    <label>Nom :</label><br />
-                    <input type="text" name="name" value={product.name} onChange={handleChange} required style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc' }} />
-                </div>
-                <div style={{ marginBottom: 15 }}>
-                    <label>Quantité :</label><br />
-                    <input type="number" name="quantity" value={product.quantity} onChange={handleChange} required min="0" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc' }} />
-                </div>
-                <div style={{ marginBottom: 15 }}>
-                    <label>Stock minimum :</label><br />
-                    <input type="number" name="minQuantity" value={product.minQuantity} onChange={handleChange} required min="0" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc' }} />
-                </div>
-                <div style={{ marginBottom: 15 }}>
-                    <label>Prix (€) :</label><br />
-                    <input type="number" name="price" value={product.price} onChange={handleChange} required min="0" step="0.01" style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ccc' }} />
-                </div>
-                <button type="submit" disabled={saving} style={{ backgroundColor: '#f39c12', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer' }}>
-                    {saving ? 'Sauvegarde...' : 'Enregistrer'}
-                </button>
-                <button type="button" onClick={() => navigate('/')} style={{ marginLeft: 10, padding: '10px 20px', borderRadius: 8, cursor: 'pointer' }}>
-                    Annuler
-                </button>
-            </form>
+  const styles = `
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #d3f4ff, #ffffff);
+    }
+
+    .edit-container {
+      max-width: 500px;
+      margin: 60px auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .edit-title {
+      font-size: 1.8rem;
+      color: #2b6777;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border 0.3s ease;
+    }
+
+    .form-input:focus {
+      border-color: #2b6777;
+      outline: none;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #2b6777;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      background-color: #1d4f5f;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      background-color: #ffecec;
+      border-left: 4px solid #e74c3c;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+  `;
+
+  return (
+    <div className="edit-container">
+      <style>{styles}</style>
+      <h2 className="edit-title">Modifier le Produit</h2>
+      {error && <div className="error-message">{error}</div>}
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label className="form-label">Nom du produit</label>
+          <input
+            type="text"
+            name="name"
+            value={product.name}
+            onChange={handleChange}
+            className="form-input"
+            required
+          />
         </div>
-    );
+        <div className="form-group">
+          <label className="form-label">Quantité</label>
+          <input
+            type="number"
+            name="quantity"
+            value={product.quantity}
+            onChange={handleChange}
+            className="form-input"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Stock minimum</label>
+          <input
+            type="number"
+            name="minQuantity"
+            value={product.minQuantity}
+            onChange={handleChange}
+            className="form-input"
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Prix (€)</label>
+          <input
+            type="number"
+            name="price"
+            step="0.01"
+            value={product.price}
+            onChange={handleChange}
+            className="form-input"
+            required
+          />
+        </div>
+        <button type="submit" className="submit-btn">Enregistrer</button>
+      </form>
+    </div>
+  );
 };
 
 export default EditProduct;
