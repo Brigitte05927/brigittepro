@@ -10,6 +10,9 @@ import ReportPage from './pages/ReportPage';
 // src/Main.js
 import AuthProvider from './services/AuthProvider';
 import EditProduct from './pages/EditProduct';
+import GlobalReport from './pages/GlobalReport';
+
+
 
 
 
@@ -27,7 +30,7 @@ function Main() {
         <Route path="/AuthProvider" element={<AuthProvider />} />
         <Route path="/edit-product/:id" element={<EditProduct />} />
         <Route path="/transaction/:id" element={<TransactionPage />} />
-        
+        <Route path="/global-report" element={<GlobalReport />} />
       </Routes>
     </Router>
   );
