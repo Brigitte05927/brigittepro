@@ -9,6 +9,7 @@ import TransactionPage from './pages/TransactionPage';
 import ReportPage from './pages/ReportPage';
 // src/Main.js
 import AuthProvider from './services/AuthProvider';
+import EditProduct from './pages/EditProduct';
 
 
 
@@ -22,8 +23,9 @@ function Main() {
         <Route path="/AddProduct" element={<AddProduct />} />
         <Route path="/ProductList" element={<ProductList />} />
         <Route path="/csv-export/:id" element={<CsvExport />} />
-         <Route path="/reportpage" element={<ReportPage />} />
-          <Route path="/AuthProvider" element={<AuthProvider />} />
+        <Route path="/reportpage" element={<ReportPage />} />
+        <Route path="/AuthProvider" element={<AuthProvider />} />
+        <Route path="/edit-product/:id" element={<EditProduct />} />
         <Route path="/transaction/:id" element={<TransactionPage />} />
         
       </Routes>
