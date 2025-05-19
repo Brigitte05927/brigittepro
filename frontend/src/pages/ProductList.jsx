@@ -36,7 +36,6 @@ const ProductList = () => {
     };
 
     const handleEdit = (id) => {
-        // Rediriger vers la page de modification avec l'ID
         navigate(`/edit-product/${id}`);
     };
 
@@ -62,19 +61,19 @@ const ProductList = () => {
         }
     };
 
-    const handleExportCsv = async () => {
-        try {
-            const response = await axios.get('http://localhost:8080/api/products/export/csv', {
-                responseType: 'blob'
-            });
-            const blob = new Blob([response.data], { type: 'text/csv' });
-            const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = 'produits_export.csv';
-            link.click();
-        } catch (err) {
-            setError("Erreur d'export CSV: " + err.message);
-        }
+    // ✅ Exporter uniquement UN produit en CSV
+    const handleExportProductCsv = (product) => {
+        const csvHeader = "Nom,Quantité,Stock Min,Prix (€)\n";
+        const csvRow = `${product.name},${product.quantity},${product.minQuantity},${product.price.toFixed(2)}\n`;
+        const csvContent = csvHeader + csvRow;
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', `produit_${product.id}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const handleGlobalReport = () => navigate('/global-report');
@@ -243,7 +242,7 @@ const ProductList = () => {
                                     <button className="action-btn pdf-btn" onClick={() => handleGeneratePdf(product.id)}>
                                         <FaFilePdf /> PDF
                                     </button>
-                                    <button className="action-btn csv-btn" onClick={handleExportCsv}>
+                                    <button className="action-btn csv-btn" onClick={() => handleExportProductCsv(product)}>
                                         <FaFileCsv /> CSV
                                     </button>
                                     <button className="action-btn report-btn" onClick={handleGlobalReport}>
