@@ -1,34 +1,46 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 
 const ReportPage = () => {
-  const location = useLocation();
-  const reports = location.state?.reports || [];
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  console.log("Rapports reçus :", reports); // Pour déboguer
+  useEffect(() => {
+    // Appel API pour récupérer les produits à stock faible
+    fetch('http://localhost:8080/api/reports/low-stock')
+      .then(res => res.json())
+      .then(data => {
+        setLowStockProducts(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Erreur lors de la récupération des produits à stock faible:", err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div className="container">
-      <h2>📊 Historique des Transactions</h2>
-      {reports.length === 0 ? (
-        <p>Aucun rapport disponible.</p>
+      <h2>📉 Produits à Stock Faible</h2>
+
+      {loading ? (
+        <p>Chargement...</p>
+      ) : lowStockProducts.length === 0 ? (
+        <p>Aucun produit en stock faible.</p>
       ) : (
         <table>
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Produit</th>
-              <th>Type</th>
+              <th>Nom</th>
               <th>Quantité</th>
+              <th>Seuil Minimum</th>
             </tr>
           </thead>
           <tbody>
-            {reports.map((rep, index) => (
+            {lowStockProducts.map((product, index) => (
               <tr key={index}>
-                <td>{rep.date}</td>
-                <td>{rep.product}</td>
-                <td>{rep.type}</td>
-                <td>{rep.quantity}</td>
+                <td>{product.name}</td>
+                <td>{product.quantity}</td>
+                <td>{product.minQuantity}</td>
               </tr>
             ))}
           </tbody>
@@ -38,12 +50,12 @@ const ReportPage = () => {
       <style>{`
         .container {
           padding: 40px;
-          background: linear-gradient(to right, #e0f2fe, #f0fdf4);
+          background: linear-gradient(to right, #fef9c3, #fde68a);
           min-height: 100vh;
           font-family: 'Segoe UI', sans-serif;
         }
         h2 {
-          color: #0c4a6e;
+          color: #92400e;
           text-align: center;
           margin-bottom: 20px;
         }
@@ -60,11 +72,11 @@ const ReportPage = () => {
           text-align: center;
         }
         th {
-          background-color: #059669;
+          background-color: #f59e0b;
           color: white;
         }
         tr:nth-child(even) {
-          background-color: #f9f9f9;
+          background-color: #fef3c7;
         }
       `}</style>
     </div>
